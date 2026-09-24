@@ -2,7 +2,7 @@ import { Booking } from '../models/Booking.js';
 import { Tour } from '../models/Tour.js';
 import { seatLockService } from '../services/seatLockService.js';
 import { notificationService } from '../services/notificationService.js';
-import { allToursData } from '../../src/data/toursData.js';
+import { allToursData } from '../data/toursData.js';
 
 export const lockSeats = async (req, res) => {
   try {
