@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Tour } from '../models/Tour.js';
-import { allToursData } from '../../src/data/toursData.js';
+import { allToursData } from '../data/toursData.js';
 
 export const getTours = async (req, res) => {
   try {
