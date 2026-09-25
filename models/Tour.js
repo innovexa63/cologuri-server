@@ -21,6 +21,28 @@ const tourSchema = new mongoose.Schema(
     bookedSeats: [{ type: String }],
     femaleSeats: [{ type: String }],
     isJointTour: { type: Boolean, default: false },
+    tourType: { type: String, enum: ['own', 'combine'], default: 'own' },
+    partnerGroups: [
+      {
+        groupId: { type: String, required: true },
+        groupName: { type: String, required: true },
+        groupSlug: { type: String, required: true },
+        color: { type: String, default: '#166B47' },
+        allocatedSeats: [{ type: String }],
+        bookedSeats: [{ type: String }],
+      },
+    ],
+    seatTransfers: [
+      {
+        seatNo: { type: String, required: true },
+        fromGroupId: { type: String, required: true },
+        fromGroupName: { type: String, required: true },
+        toGroupId: { type: String, required: true },
+        toGroupName: { type: String, required: true },
+        transferredAt: { type: Date, default: Date.now },
+        note: { type: String, default: '' },
+      },
+    ],
     tag: { type: String, default: 'লাইভ ট্যুর' },
     tagColor: { type: String, default: '#166B47' },
     image: { type: String, required: true },
