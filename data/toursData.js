@@ -53,9 +53,7 @@ export const allToursData = {
         toGroupId: 'g2',
         toGroupName: 'সবুজ পথিক ট্রাভেলার্স',
         transferredAt: '2026-10-20T14:30:00.000Z',
-
         note: 'সবুজ পথিকের অতিরিক্ত চাহিদার কারণে ১টি সিট রেফার করা হয়েছে।',
-
       },
     ],
     tag: 'লাইভ জয়েন্ট ট্যুর',

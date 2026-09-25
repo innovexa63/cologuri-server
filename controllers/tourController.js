@@ -161,7 +161,6 @@ export const createTour = async (req, res) => {
   }
 };
 
-
 export const updateTour = async (req, res) => {
   try {
     const { id } = req.params;
