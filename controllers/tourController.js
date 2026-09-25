@@ -161,6 +161,101 @@ export const createTour = async (req, res) => {
   }
 };
 
+
+export const updateTour = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      requestGroupId, // ID of the group attempting the update
+      title,
+      price,
+      discount,
+      originalPrice,
+      customTitle,
+      route,
+      startDate,
+      duration,
+      destination,
+      busInfo,
+      partnerGroups,
+    } = req.body;
+
+    let tour = null;
+    if (mongoose.connection.readyState === 1) {
+      try {
+        tour = await Tour.findOne({ $or: [{ _id: id }, { slug: id }] });
+      } catch (e) {}
+    }
+    if (!tour) {
+      tour = allToursData[id] || allToursData['sajek-1'];
+    }
+
+    if (!tour) {
+      return res.status(404).json({ success: false, message: 'ট্যুর প্যাকেজ পাওয়া যায়নি।' });
+    }
+
+    const creatorId = tour.creatorGroupId || tour.operator?.id || 'tg1';
+    const isCreator = !requestGroupId || requestGroupId === creatorId;
+
+    if (isCreator) {
+      // Creator can update everything
+      if (title !== undefined) tour.title = title;
+      if (route !== undefined) tour.route = route;
+      if (startDate !== undefined) tour.startDate = startDate;
+      if (duration !== undefined) tour.duration = duration;
+      if (destination !== undefined) tour.destination = destination;
+      if (price !== undefined) tour.price = Number(price);
+      if (busInfo !== undefined) tour.busInfo = { ...tour.busInfo, ...busInfo };
+      if (partnerGroups !== undefined) tour.partnerGroups = partnerGroups;
+    } else {
+      // Non-creator (Partner group admin):
+      // LOCKED: Route, Destination, StartDate, Duration, Bus details, Seat Allocation
+      // PERMITTED: Custom Title, Custom Price, Custom Discount for their group
+      if (!tour.partnerGroups) tour.partnerGroups = [];
+      const partner = tour.partnerGroups.find((p) => p.groupId === requestGroupId || p.groupSlug === requestGroupId);
+
+      if (partner) {
+        if (customTitle !== undefined) partner.customTitle = customTitle;
+        if (title !== undefined && !partner.customTitle) partner.customTitle = title;
+        if (price !== undefined) partner.price = Number(price);
+        if (discount !== undefined) partner.discount = Number(discount);
+        if (originalPrice !== undefined) partner.originalPrice = Number(originalPrice);
+      } else {
+        return res.status(403).json({
+          success: false,
+          message: 'আপনি এই যৌথ ট্যুরের অনুমোদিত পার্টনার নন।',
+        });
+      }
+    }
+
+    // Save in DB
+    if (mongoose.connection.readyState === 1 && typeof tour.save === 'function') {
+      try {
+        await tour.save();
+      } catch (e) {}
+    }
+
+    // Sync in memory
+    allToursData[id] = tour;
+
+    // Broadcast via socket
+    if (req.app.get('io')) {
+      const io = req.app.get('io');
+      io.emit('tour:updated', tour);
+    }
+
+    res.json({
+      success: true,
+      message: isCreator
+        ? 'ট্যুর প্যাকেজ সফলভাবে আপডেট করা হয়েছে।'
+        : 'আপনার পার্টনার গ্রুপের কাস্টমাইজেশন (টাইটেল, মূল্য, ডিসকাউন্ট) সফলভাবে সংরক্ষিত হয়েছে।',
+      data: tour,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const transferSeat = async (req, res) => {
   try {
     const { id } = req.params;
